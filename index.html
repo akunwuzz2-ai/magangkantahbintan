@@ -285,7 +285,7 @@
     let isLoadingApplicants = false;
 
     function getCandidateKey(item) {
-      return `${String(item.email || item.name || '').trim().toLowerCase()}__${String(item.posisi || '').trim().toLowerCase()}`;
+      return `${String(item.email || item.nama || '').trim().toLowerCase()}__${String(item.posisi || '').trim().toLowerCase()}`;
     }
 
     function getAllApplicants() { return [...dataSurvei, ...dataYuridis]; }
@@ -322,8 +322,11 @@
       try {
         const { data, error } = await supabaseClient.from('peserta_wawancara').select('*').eq('deleted', false).order('kategori').order('no');
         if (error) throw error;
-        dataSurvei.splice(0, dataSurvei.length, ...(data || []).filter(x => x.kategori === 'survei'));
-        dataYuridis.splice(0, dataYuridis.length, ...(data || []).filter(x => x.kategori === 'yuridis'));
+        // Supabase column is `nama`; keep the UI model consistent with the database.
+        // The alias `name` is intentionally not used so schema mismatches cannot produce `undefined`.
+        const normalizedData = (data || []).map(x => ({ ...x, nama: x.nama ?? '' }));
+        dataSurvei.splice(0, dataSurvei.length, ...normalizedData.filter(x => x.kategori === 'survei'));
+        dataYuridis.splice(0, dataYuridis.length, ...normalizedData.filter(x => x.kategori === 'yuridis'));
         if (currentDataSet === dataYuridis) currentDataSet = dataYuridis; else currentDataSet = dataSurvei;
         renderTable(currentDataSet);
         updateTabCounts();
@@ -349,8 +352,8 @@
     }
 
     async function deleteApplicant(item) {
-      if (!item || item.selected) { if (item) alert(`${item.name} sudah terpilih dan tidak dapat dihapus.`); return; }
-      if (!confirm(`Hapus peserta "${item.name}" dari daftar?\n\nData akan disembunyikan untuk SEMUA pengguna dashboard.`)) return;
+      if (!item || item.selected) { if (item) alert(`${item.nama} sudah terpilih dan tidak dapat dihapus.`); return; }
+      if (!confirm(`Hapus peserta "${item.nama}" dari daftar?\n\nData akan disembunyikan untuk SEMUA pengguna dashboard.`)) return;
       const { error } = await supabaseClient.from('peserta_wawancara').update({ deleted: true }).eq('id', item.id);
       if (error) return alert('Gagal menghapus: ' + error.message);
       await loadApplicants(false);
@@ -481,7 +484,7 @@
       const pddikti = json.pddikti || {};
 
       return {
-        'Nama': item.name || '',
+        'Nama': item.nama || '',
         'Email': item.email || '',
         'Posisi Dilamar': item.posisi || '',
         'Pendidikan': item.pendidikan || '',
@@ -582,7 +585,7 @@
           try {
             const ext=/^data:image\/png/i.test(dataUrl)?'png':'jpeg';
             photoMap.set(item, wb.addImage({base64:dataUrl,extension:ext}));
-          } catch(e) { console.warn('Gagal menanam foto:',item.name,e); }
+          } catch(e) { console.warn('Gagal menanam foto:',item.nama,e); }
         }
         addSheet(wb,'Semua Terpilih',candidates,photoMap);
         const groups={};
@@ -627,18 +630,18 @@
           : "hover:bg-gray-800/40 transition-colors";
 
         row.innerHTML = `
-          <td class="px-4 py-3.5 text-center font-medium text-gray-500">${item.no}</td>
+          <td class="px-4 py-3.5 text-center font-medium text-gray-500">${item.no ?? (index + 1)}</td>
           <td class="px-4 py-3.5">
             <div class="flex items-center gap-3">
               <div class="flex flex-col items-center gap-1 flex-shrink-0">
-                <img src="${item.avatar}" alt="${item.name}" class="w-11 h-11 rounded-full object-cover border border-gray-700 bg-gray-800" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=1e293b&color=fff'">
+                <img src="${item.avatar}" alt="${item.nama}" class="w-11 h-11 rounded-full object-cover border border-gray-700 bg-gray-800" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=1e293b&color=fff'">
                 <button type="button" onclick="openPhoto(${index})" class="text-[10px] font-semibold text-cyan-300 hover:text-white border border-cyan-700/60 bg-cyan-950/30 hover:bg-cyan-700/60 rounded px-2 py-0.5 transition-all" title="Lihat foto profil besar">
                   View
                 </button>
               </div>
               <div>
                 <div class="font-semibold text-white tracking-wide flex items-center gap-2">
-                  ${item.name}
+                  ${item.nama}
                   ${selected ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">TERPILIH</span>' : ''}
                 </div>
                 <div class="text-xs text-gray-400 font-mono">${item.email}</div>
@@ -747,11 +750,11 @@
 
       img.onerror = function() {
         this.onerror = null;
-        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=1e293b&color=fff&size=800`;
+        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama || 'User')}&background=1e293b&color=fff&size=800`;
       };
-      img.src = item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=1e293b&color=fff&size=800`;
-      img.alt = `Foto profil ${item.name || 'Kandidat'}`;
-      if (nameEl) nameEl.innerText = item.name || 'Kandidat';
+      img.src = item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama || 'User')}&background=1e293b&color=fff&size=800`;
+      img.alt = `Foto profil ${item.nama || 'Kandidat'}`;
+      if (nameEl) nameEl.innerText = item.nama || 'Kandidat';
       modal.classList.remove('hidden');
     }
 
@@ -785,10 +788,10 @@
       const avatarEl = document.getElementById("modal-avatar");
       avatarEl.src = item.avatar;
       avatarEl.onerror = function() {
-        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=475569&color=fff`;
+        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=475569&color=fff`;
       };
 
-      document.getElementById("modal-name").innerText = item.name;
+      document.getElementById("modal-name").innerText = item.nama;
       document.getElementById("modal-email").innerText = item.email;
       document.getElementById("modal-phone-domisili").innerText = `${profil.telepon || '-'} • ${profil.domisili || '-'}`;
       document.getElementById("modal-status-badge").innerText = isSelected(item) ? 'Terpilih' : item.status;
@@ -801,7 +804,7 @@
         cvBtn.disabled = !cvUrl;
         cvBtn.classList.toggle('opacity-50', !cvUrl);
         cvBtn.classList.toggle('cursor-not-allowed', !cvUrl);
-        cvBtn.title = cvUrl ? `Lihat CV ${item.name}` : 'CV tidak tersedia';
+        cvBtn.title = cvUrl ? `Lihat CV ${item.nama}` : 'CV tidak tersedia';
       }
 
       document.getElementById("modal-profil-info").innerHTML = `
