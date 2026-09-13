@@ -475,29 +475,29 @@
       return urls.find(u => /(^|\/)(cv|curriculum|resume)(\/|\?|$)/i.test(u)) || '';
     }
 
-function makeExportRow(item) {
-  const json = item.json_data || {};
-  const profil = json.profil_pelamar || {};
-  const pddikti = json.pddikti || {};
-
-  return {
-    'Nama': item.nama || item.name || '-',
-    'Email': item.email || '-',
-    'Posisi Dilamar': item.posisi || '-',
-    'Pendidikan': item.pendidikan || '-',
-    'Tanggal Lahir': profil.tanggal_lahir || '-',
-    'Usia': profil.usia || '-',
-    'Domisili': profil.domisili || '-',
-    'Jenis Kelamin': profil.jenis_kelamin || '-',
-    'Perguruan Tinggi (PDDIKTI)': pddikti.perguruan_tinggi || '-',
-    'Jenjang / IPK': `${pddikti.jenjang || '-'} / ${pddikti.ipk || '-'}`,
-    'Program Studi': pddikti.program_studi || '-',
-    'Pengalaman Kerja': joinExperiences(json.pengalaman_kerja),
-    'Keahlian': joinSkills(json.keahlian),
-    'Sertifikasi & Prestasi': joinCertificates(json.sertifikasi_pelatihan_prestasi),
-    'Link CV': getCvUrl(item) || '-'
-  };
-}
+    function makeExportRow(item) {
+      const json = item.json_data || {};
+      const profil = json.profil_pelamar || {};
+      const pddikti = json.pddikti || {};
+    
+      return {
+        'Nama': item.nama || item.name || '-',
+        'Email': item.email || '-',
+        'Posisi Dilamar': item.posisi || '-',
+        'Pendidikan': item.pendidikan || '-',
+        'Tanggal Lahir': profil.tanggal_lahir || '-',
+        'Usia': profil.usia || '-',
+        'Domisili': profil.domisili || '-',
+        'Jenis Kelamin': profil.jenis_kelamin || '-',
+        'Perguruan Tinggi (PDDIKTI)': pddikti.perguruan_tinggi || '-',
+        'Jenjang / IPK': `${pddikti.jenjang || '-'} / ${pddikti.ipk || '-'}`,
+        'Program Studi': pddikti.program_studi || '-',
+        'Pengalaman Kerja': joinExperiences(json.pengalaman_kerja),
+        'Keahlian': joinSkills(json.keahlian),
+        'Sertifikasi & Prestasi': joinCertificates(json.sertifikasi_pelatihan_prestasi),
+        'Link CV': getCvUrl(item) || '-'
+      };
+    }
 
     function safeSheetName(name) {
       return String(name || 'Sheet')
