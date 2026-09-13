@@ -3,201 +3,947 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Peserta Wawancara Magang Kantah Bintan</title>
-  
-  <!-- Supabase JS Client v2 -->
+  <title>Peserta Wawancara Magang Kantah Bintan Total 22 Peserta</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; padding: 20px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    h1 { font-size: 20px; color: #fff; }
-    
-    .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; }
-    .stat-card { background: #1e293b; padding: 15px; border-radius: 8px; flex: 1; text-align: center; }
-    .stat-card span { font-size: 24px; font-weight: bold; color: #38bdf8; display: block; }
-
-    .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-    .tab-btn { background: #1e293b; color: #94a3b8; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
-    .tab-btn.active { background: #2563eb; color: #fff; }
-
-    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }
-    th { background: #0f172a; color: #94a3b8; }
-    
-    .badge { background: #10b981; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-    .btn-action { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
-    .status-text { margin-bottom: 10px; font-size: 14px; color: #38bdf8; }
-  </style>
 </head>
-<body>
+<body class="bg-[#0b0f19] text-gray-100 p-4 md:p-6 font-sans min-h-screen bg-cover bg-center bg-fixed" style="background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEW2LuIaz3Vtsrg83zjo_0B9mfNgg_X9l7JrP5QURRNr710pQogRS5spH7dIU8RlvTUzyUBCULzNwPhy_1PgdABGJXF3jhmemYr5_6v5hfythgcQjDfsGfRGZJbOJQX_ERq2NZPIvZJXEdlOLDNGUk7ArgfAic2i3IZEK4K0YBX_VrpFQSJi5EF_F_GkQ/s1846/IMG%2012220.png');">
+  <!-- LOGIN SUPABASE -->
+  <div id="login-screen" class="fixed inset-0 z-[100] bg-[#05070d]/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-[#111827] border border-gray-700 rounded-2xl shadow-2xl p-7">
+      <div class="text-center mb-6">
+        <div class="text-4xl mb-2">🔐</div>
+        <h1 class="text-xl font-bold text-white">Peserta Wawancara Magang</h1>
+        <p class="text-sm text-gray-400 mt-1">Kantah Bintan • Dashboard Realtime</p>
+      </div>
+      <form id="login-form" class="space-y-4">
+        <div><label class="block text-xs font-semibold text-gray-400 mb-1">Email</label><input id="login-email" type="email" required autocomplete="username" class="w-full rounded-xl bg-[#0b0f19] border border-gray-700 text-white px-4 py-3 outline-none focus:border-blue-500" placeholder="email@contoh.com"></div>
+        <div><label class="block text-xs font-semibold text-gray-400 mb-1">Password</label><input id="login-password" type="password" required autocomplete="current-password" class="w-full rounded-xl bg-[#0b0f19] border border-gray-700 text-white px-4 py-3 outline-none focus:border-blue-500" placeholder="Password"></div>
+        <button id="login-button" type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all">Masuk ke Dashboard</button>
+        <p id="login-error" class="hidden text-sm text-red-300 bg-red-950/40 border border-red-900/50 rounded-xl p-3"></p>
+      </form>
+      <p class="text-[11px] text-gray-500 text-center mt-5">Akses hanya untuk akun yang dibuat di Supabase Authentication.</p>
+    </div>
+  </div>
 
-  <div class="container">
-    <header>
-      <h1>Peserta Wawancara Magang Kantah Bintan</h1>
-    </header>
+  <div id="sync-status" class="fixed bottom-3 left-3 z-50 text-[11px] bg-black/60 border border-gray-700 rounded-full px-3 py-1.5 text-gray-300 backdrop-blur-sm">● Menghubungkan...</div>
 
-    <div class="stats-bar">
-      <div class="stat-card">Total Pelamar<span id="count-total">0</span></div>
-      <div class="stat-card">Kategori Survei<span id="count-survei">0</span></div>
-      <div class="stat-card">Kategori Yuridis<span id="count-yuridis">0</span></div>
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Container Utama Dashboard -->
+    <div class="bg-[#111827]/80 backdrop-blur-md rounded-xl border border-gray-800/80 shadow-2xl overflow-hidden">
+      
+      <!-- Dashboard Header -->
+      <div class="relative p-6 border-b border-gray-800/80 bg-[#060913]/60 backdrop-blur-md flex flex-col items-center justify-center text-center gap-4">
+<button onclick="logoutUser()" type="button" class="absolute top-2 left-3 text-[10px] px-2 py-1 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-800 transition-all">Keluar</button>
+<div class="absolute top-2 right-3 text-[9px] leading-none text-gray-400/70 font-medium tracking-[.15px] pointer-events-none select-none whitespace-nowrap" aria-label="App by Nurdin Ganteng">App by : Nurdin Ganteng</div>
+
+        <!-- Tengah: Judul Sub-header & Posisi -->
+        <div>
+          <h2 id="view-title" class="text-xl font-bold text-white tracking-wide">Peserta Wawancara Magang Kantah Bintan Total 22 Peserta</h2>
+          <p id="view-subtitle" class="text-sm text-gray-400 mt-1">Posisi: Tenaga Teknis Survei & Pemetaan</p>
+        </div>
+
+        <!-- Sisi Kanan/Bawah Header: Menu Tab Navigasi & Total Pelamar -->
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <!-- Navigation Tabs -->
+          <div class="flex items-center gap-1.5 bg-[#0b0f19]/80 p-1.5 rounded-xl border border-gray-800">
+            <button id="tab-survei" onclick="switchTab('survei')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-500/20">
+              Tenaga Teknis Survei & Pemetaan (18)
+            </button>
+            <button id="tab-yuridis" onclick="switchTab('yuridis')" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-gray-800/50">
+              Tenaga Administrasi & Yuridis Pertanahan (23)
+            </button>
+          </div>
+
+          <!-- Total Pelamar Counter -->
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <div class="bg-blue-950/40 border border-blue-800/60 text-blue-400 px-4 py-2 rounded-xl text-sm font-medium">
+              Total Pelamar Tampil: <span id="total-count" class="font-bold text-blue-300">18 Orang</span>
+            </div>
+            <button id="export-selected-btn" onclick="exportSelectedToExcel()" type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-900/20 transition-all">
+              📊 Ekspor Excel <span id="selected-count-badge" class="bg-white/20 px-2 py-0.5 rounded-full">0</span>
+            </button>
+            <button onclick="clearAllSelections()" type="button"
+              class="px-3 py-2 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-800 text-xs font-semibold transition-all"
+              title="Hapus semua kandidat yang terpilih">
+              Reset Pilihan
+            </button>
+            <button onclick="deleteAllUnselected()" type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-lg shadow-red-900/20"
+              title="Hapus semua peserta yang tidak terpilih">
+              🗑 Hapus Tidak Terpilih
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Kotak Syarat / Kualifikasi Pendidikan (Dinamis Berdasarkan Tab) -->
+      <div id="requirements-box" class="px-6 py-4 bg-[#060913]/40 border-b border-gray-800/80 text-sm flex flex-wrap items-center justify-center text-center gap-6">
+        <!-- Diisi secara dinamis lewat JavaScript -->
+      </div>
+
+      <!-- Tabel Pelamar -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-300">
+          <thead class="bg-[#0b0f19]/70 text-xs uppercase text-gray-400 border-b border-gray-800 tracking-wider">
+            <tr>
+              <th scope="col" class="px-4 py-4 text-center w-12">NO</th>
+              <th scope="col" class="px-4 py-4">KANDIDAT</th>
+              <th scope="col" class="px-4 py-4">POSISI DILAMAR</th>
+              <th scope="col" class="px-4 py-4">PENDIDIKAN</th>
+              <th scope="col" class="px-4 py-4 text-center">STATUS</th>
+              <th scope="col" class="px-4 py-4 text-center">TANGGAL MELAMAR</th>
+              <th scope="col" class="px-4 py-4 text-center">AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="applicant-table-body" class="divide-y divide-gray-800/60 bg-transparent">
+            <!-- Dynamic Rows Generated by JS -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div id="status-sync" class="status-text">Memuat data...</div>
+  </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" id="btn-survei" onclick="switchTab('survei')">Tenaga Teknis Survei</button>
-      <button class="tab-btn" id="btn-yuridis" onclick="switchTab('yuridis')">Tenaga Administrasi & Yuridis</button>
+  <!-- POPUP FOTO PROFIL BESAR -->
+  <div id="photo-modal" class="fixed inset-0 z-[70] hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 md:p-6">
+    <div class="relative w-full max-w-4xl max-h-[94vh] flex flex-col items-center justify-center">
+      <button onclick="closePhoto()" type="button"
+        class="absolute right-1 top-1 md:right-2 md:top-2 z-10 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white text-xl border border-white/20"
+        aria-label="Tutup foto">✕</button>
+      <img id="photo-viewer-image" src="" alt="" class="max-h-[82vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 bg-slate-900">
+      <div id="photo-viewer-name" class="mt-3 px-4 py-2 rounded-lg bg-black/70 text-white text-sm font-semibold text-center"></div>
     </div>
+  </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>NO</th>
-          <th>KANDIDAT</th>
-          <th>POSISI DILAMAR</th>
-          <th>PENDIDIKAN</th>
-          <th>STATUS</th>
-          <th>AKSI</th>
-        </tr>
-      </thead>
-      <tbody id="table-body">
-        <tr><td colspan="6" style="text-align:center;">Sedang mengambil data...</td></tr>
-      </tbody>
-    </table>
+  <!-- POPUP / MODAL DETAIL PELAMAR -->
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 md:p-6 transition-opacity duration-300">
+    <div class="bg-slate-900 text-gray-100 w-full max-w-2xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative animate-in fade-in zoom-in-95 duration-200 mx-auto my-auto border border-slate-700">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-slate-700 flex items-start justify-between bg-slate-900 sticky top-0 z-10">
+        <div class="flex items-center gap-4">
+          <img id="modal-avatar" src="" alt="" class="w-14 h-14 rounded-full object-cover border border-slate-600 shadow-sm bg-slate-800" onerror="this.src='https://ui-avatars.com/api/?name=User&background=cbd5e1&color=334155'">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 id="modal-name" class="text-xl font-bold text-white"></h3>
+              <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white text-xs font-bold" title="Terverifikasi">✓</span>
+            </div>
+            <p id="modal-email" class="text-sm text-slate-300 mt-0.5"></p>
+            <p id="modal-phone-domisili" class="text-xs text-slate-400 mt-1"></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span id="modal-status-badge" class="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs font-semibold">Pelamar</span>
+          <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-5 flex-1 bg-slate-950/70">
+        
+        <!-- Posisi Dilamar Card -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <span class="text-xs font-medium uppercase text-slate-400 tracking-wider">POSISI YANG DILAMAR</span>
+              <p id="modal-posisi" class="text-sm font-bold text-blue-700 bg-blue-50/80 px-2 py-0.5 rounded mt-0.5 inline-block"></p>
+            </div>
+          </div>
+          <span id="modal-tanggal" class="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full font-medium"></span>
+        </div>
+
+        <!-- Informasi Profil Pelamar -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-2">
+          <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.654 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Informasi Personal Pelamar</span>
+          </div>
+          <div id="modal-profil-info" class="grid grid-cols-2 gap-2 text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-700"></div>
+        </div>
+
+        <!-- Deskripsi Diri / Profil -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-2">
+          <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <span>Deskripsi Diri / Profil Singkat</span>
+          </div>
+          <p id="modal-deskripsi" class="text-xs text-slate-300 leading-relaxed"></p>
+        </div>
+
+        <!-- Data PDDIKTI -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+              <span>Data Akademik (PDDIKTI)</span>
+            </div>
+            <span class="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-full text-xs font-semibold">
+              ✓ Terverifikasi
+            </span>
+          </div>
+          <div id="modal-pddikti-detail" class="grid grid-cols-2 gap-2 text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-700"></div>
+        </div>
+
+        <!-- Riwayat Pendidikan -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-8 2v4"/></svg>
+            <span>Riwayat Pendidikan</span>
+          </div>
+          <div id="modal-pendidikan" class="space-y-2 text-xs text-slate-300"></div>
+        </div>
+
+        <!-- Bahasa -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+            <span>Kemampuan Bahasa</span>
+          </div>
+          <div id="modal-bahasa" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- Pengalaman Kerja -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center gap-2 text-sm font-semibold text-slate-100">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span>Pengalaman Kerja</span>
+          </div>
+          <div id="modal-pengalaman" class="space-y-2 text-xs text-slate-300"></div>
+        </div>
+
+        <!-- Keahlian & Sertifikasi -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-2">
+            <div class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+              <span>🛠️</span> Keahlian
+            </div>
+            <div id="modal-keahlian" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 shadow-sm space-y-2">
+            <div class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+              <span>📜</span> Sertifikasi & Prestasi
+            </div>
+            <div id="modal-sertifikasi" class="space-y-1 text-xs text-slate-300"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-700 bg-slate-900 flex items-center gap-3 sticky bottom-0">
+        <button onclick="toggleCurrentSelection()" id="modal-select-btn" type="button"
+          class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2">
+          ⭐ Tandai Terpilih
+        </button>
+        <button onclick="openCurrentCv()" id="modal-cv-btn" type="button"
+          class="py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2">
+          📄 Lihat CV
+        </button>
+        <button onclick="closeModal()" type="button"
+          class="px-4 py-2.5 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-800 text-xs font-semibold transition-all">
+          Tutup
+        </button>
+      </div>
+
+    </div>
   </div>
 
   <script>
+    // Data Dataset Pelamar lengkap
+        const dataSurvei = [];
+
+    const dataYuridis = [];    let currentDataSet = dataSurvei;
+    let currentModalItem = null;
+
+    // ============================================================
+    // SUPABASE REALTIME
+    // Isi SUPABASE_URL dan SUPABASE_PUBLISHABLE_KEY setelah membuat project.
+    // Jangan pernah menaruh service_role key di HTML.
+    // ============================================================
     const SUPABASE_URL = 'https://klpmlblcmmrnqkhukqzd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_oWOp8TPwWScDLyTozwjRTg_QsNT-St0';
+    const { createClient } = window.supabase;
+    const supabaseClient = (SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PASTE_') && !SUPABASE_PUBLISHABLE_KEY.includes('PASTE_'))
+      ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+      : null;
 
-    let supabaseClient = null;
-
-    function initSupabase() {
-      if (window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-          auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-        });
-        loadApplicants();
-      } else {
-        setSyncStatus('Gagal memuat library Supabase. Periksa koneksi internet.');
-      }
-    }
-
-    let dataSurvei = [];
-    let dataYuridis = [];
-    let currentDataSet = 'survei';
+    let realtimeChannel = null;
     let isLoadingApplicants = false;
 
-    function setSyncStatus(msg) {
-      const el = document.getElementById('status-sync');
-      if (el) el.innerText = msg;
+    function getCandidateKey(item) {
+      return `${String(item.email || item.name || '').trim().toLowerCase()}__${String(item.posisi || '').trim().toLowerCase()}`;
     }
 
-    async function loadApplicants() {
-      if (!supabaseClient || isLoadingApplicants) return;
+    function getAllApplicants() { return [...dataSurvei, ...dataYuridis]; }
+
+    function getSelectedKeys() {
+      return new Set(getAllApplicants().filter(item => item.selected).map(getCandidateKey));
+    }
+
+    function isSelected(item) { return !!item?.selected; }
+
+    async function toggleSelection(item) {
+      if (!item || !item.id) return;
+      const next = !item.selected;
+      const { error } = await supabaseClient.from('peserta_wawancara').update({ selected: next }).eq('id', item.id);
+      if (error) { alert('Gagal menyimpan pilihan: ' + error.message); return; }
+      item.selected = next;
+      updateSelectionUI();
+      renderTable(currentDataSet);
+      if (currentModalItem && getCandidateKey(currentModalItem) === getCandidateKey(item)) updateModalSelectionButton();
+    }
+
+    function toggleCurrentSelection() { if (currentModalItem) toggleSelection(currentModalItem); }
+
+    function setSyncStatus(text, ok=true) {
+      const el = document.getElementById('sync-status');
+      if (!el) return;
+      el.textContent = (ok ? '● ' : '● ') + text;
+      el.className = `fixed bottom-3 left-3 z-50 text-[11px] rounded-full px-3 py-1.5 backdrop-blur-sm ${ok ? 'bg-emerald-950/80 border border-emerald-800 text-emerald-300' : 'bg-red-950/80 border border-red-800 text-red-300'}`;
+    }
+
+    async function loadApplicants(showStatus=true) {
+      if (isLoadingApplicants) return;
       isLoadingApplicants = true;
-      setSyncStatus('Memuat data dari Supabase...');
-
       try {
-        const { data, error } = await supabaseClient
-          .from('peserta_wawancara')
-          .select('*')
-          .eq('deleted', false)
-          .order('kategori')
-          .order('no');
-
+        const { data, error } = await supabaseClient.from('peserta_wawancara').select('*').eq('deleted', false).order('kategori').order('no');
         if (error) throw error;
-
-        dataSurvei.length = 0;
-        dataYuridis.length = 0;
-
-        (data || []).forEach(item => {
-          item.name = item.nama || item.name || '-';
-          if (item.kategori === 'survei') {
-            dataSurvei.push(item);
-          } else if (item.kategori === 'yuridis') {
-            dataYuridis.push(item);
-          }
-        });
-
+        dataSurvei.splice(0, dataSurvei.length, ...(data || []).filter(x => x.kategori === 'survei'));
+        dataYuridis.splice(0, dataYuridis.length, ...(data || []).filter(x => x.kategori === 'yuridis'));
+        if (currentDataSet === dataYuridis) currentDataSet = dataYuridis; else currentDataSet = dataSurvei;
         renderTable(currentDataSet);
         updateTabCounts();
-        setSyncStatus('Data berhasil diperbarui');
+        if (showStatus) setSyncStatus('Realtime aktif', true);
       } catch (error) {
-        console.error('Error Supabase:', error);
-        setSyncStatus('Gagal memuat data: ' + error.message);
-      } finally {
-        isLoadingApplicants = false;
-      }
+        console.error(error);
+        setSyncStatus('Gagal memuat database', false);
+        alert('Gagal mengambil data dari Supabase. Periksa URL/key dan SQL setup.\n\n' + error.message);
+      } finally { isLoadingApplicants = false; }
     }
 
-    function renderTable(type) {
-      currentDataSet = type;
-      const list = type === 'survei' ? dataSurvei : dataYuridis;
-      const tbody = document.getElementById('table-body');
-      if (!tbody) return;
-
-      tbody.innerHTML = '';
-
-      if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Tidak ada data pelamar.</td></tr>`;
-        return;
-      }
-
-      list.forEach((item, index) => {
-        const displayName = item.nama || item.name || '-';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>
-            <strong>${displayName}</strong><br>
-            <small style="color: #94a3b8;">${item.email || '-'}</small>
-          </td>
-          <td>${item.posisi || '-'}</td>
-          <td>${item.pendidikan || '-'}</td>
-          <td><span class="badge">${item.status || 'Pelamar'}</span></td>
-          <td>
-            <button class="btn-action" onclick="deleteApplicant('${item.id}')">Hapus</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+    function startRealtime() {
+      if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+      realtimeChannel = supabaseClient.channel('peserta-wawancara-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'peserta_wawancara' }, async () => {
+          await loadApplicants(false);
+          setSyncStatus('Perubahan tersinkron realtime', true);
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') setSyncStatus('Realtime aktif', true);
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSyncStatus('Realtime terputus', false);
+        });
     }
 
-    function switchTab(type) {
-      document.getElementById('btn-survei').classList.toggle('active', type === 'survei');
-      document.getElementById('btn-yuridis').classList.toggle('active', type === 'yuridis');
-      renderTable(type);
+    async function deleteApplicant(item) {
+      if (!item || item.selected) { if (item) alert(`${item.name} sudah terpilih dan tidak dapat dihapus.`); return; }
+      if (!confirm(`Hapus peserta "${item.name}" dari daftar?\n\nData akan disembunyikan untuk SEMUA pengguna dashboard.`)) return;
+      const { error } = await supabaseClient.from('peserta_wawancara').update({ deleted: true }).eq('id', item.id);
+      if (error) return alert('Gagal menghapus: ' + error.message);
+      await loadApplicants(false);
+    }
+
+    async function deleteAllUnselected() {
+      const unselected = getAllApplicants().filter(item => !item.selected);
+      if (!unselected.length) return alert('Tidak ada peserta yang belum terpilih untuk dihapus.');
+      if (!confirm(`Hapus ${unselected.length} peserta yang TIDAK TERPILIH?\n\nPeserta yang sudah terpilih akan tetap dipertahankan untuk semua pengguna.`)) return;
+      const ids = unselected.map(x => x.id);
+      const { error } = await supabaseClient.from('peserta_wawancara').update({ deleted: true }).in('id', ids);
+      if (error) return alert('Gagal menghapus: ' + error.message);
+      await loadApplicants(false);
+      alert(`Berhasil menghapus ${unselected.length} peserta yang tidak terpilih.`);
+    }
+
+    async function clearAllSelections() {
+      const selected = getAllApplicants().filter(x => x.selected);
+      if (!selected.length) return alert('Belum ada peserta yang terpilih.');
+      if (!confirm(`Batalkan pilihan ${selected.length} peserta?\n\nPerubahan akan terlihat oleh semua pengguna.`)) return;
+      const { error } = await supabaseClient.from('peserta_wawancara').update({ selected: false }).eq('deleted', false).eq('selected', true);
+      if (error) return alert('Gagal mereset pilihan: ' + error.message);
+      await loadApplicants(false);
     }
 
     function updateTabCounts() {
-      document.getElementById('count-survei').innerText = dataSurvei.length;
-      document.getElementById('count-yuridis').innerText = dataYuridis.length;
-      document.getElementById('count-total').innerText = dataSurvei.length + dataYuridis.length;
+      const surveiCount = dataSurvei.length;
+      const yuridisCount = dataYuridis.length;
+      const selectedCount = getAllApplicants().filter(x => x.selected).length;
+      const tabSurvei = document.getElementById('tab-survei');
+      const tabYuridis = document.getElementById('tab-yuridis');
+      if (tabSurvei) tabSurvei.innerText = `Tenaga Teknis Survei & Pemetaan (${surveiCount})`;
+      if (tabYuridis) tabYuridis.innerText = `Tenaga Administrasi & Yuridis Pertanahan (${yuridisCount})`;
+      const badge = document.getElementById('selected-count-badge');
+      if (badge) badge.innerText = selectedCount;
     }
 
-    async function deleteApplicant(id) {
-      if (!confirm('Yakin ingin menghapus peserta ini?')) return;
-      try {
-        const { error } = await supabaseClient
-          .from('peserta_wawancara')
-          .update({ deleted: true })
-          .eq('id', id);
+    function updateModalSelectionButton() {
+      const btn = document.getElementById('modal-select-btn');
+      if (!btn || !currentModalItem) return;
 
-        if (error) throw error;
-        loadApplicants();
-      } catch (err) {
-        alert('Gagal menghapus: ' + err.message);
+      if (isSelected(currentModalItem)) {
+        btn.innerHTML = '✓ Sudah Terpilih — Batalkan Pilihan';
+        btn.className = 'flex-1 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2';
+      } else {
+        btn.innerHTML = '⭐ Tandai Terpilih';
+        btn.className = 'flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2';
       }
     }
 
-    window.addEventListener('load', () => {
-      initSupabase();
+    function updateSelectionUI() {
+      const count = getAllApplicants().filter(item => item.selected).length;
+      const badge = document.getElementById('selected-count-badge');
+      if (badge) badge.innerText = count;
+      const btn = document.getElementById('export-selected-btn');
+      if (btn) {
+        btn.disabled = count === 0;
+        btn.classList.toggle('opacity-50', count === 0);
+        btn.classList.toggle('cursor-not-allowed', count === 0);
+      }
+      updateTabCounts();
+    }
+
+    // Gabungkan kedua posisi agar ekspor bisa mengambil semua kandidat terpilih,
+    // termasuk kandidat pada tab yang sedang tidak aktif.
+    function getAllCandidates() {
+      return [...dataSurvei, ...dataYuridis];
+    }
+
+    function selectedCandidates() {
+      const selected = getSelectedKeys();
+      const seen = new Set();
+
+      return getAllCandidates().filter(item => {
+        const key = getCandidateKey(item);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return selected.has(key);
+      });
+    }
+
+    function joinExperiences(list) {
+      if (!Array.isArray(list) || !list.length) return '-';
+      return list.map((exp, i) => {
+        const title = [exp.posisi, exp.instansi].filter(Boolean).join(' — ');
+        const period = exp.periode ? ` (${exp.periode})` : '';
+        const desc = exp.deskripsi ? `: ${exp.deskripsi}` : '';
+        return `${i + 1}. ${title || '-'}${period}${desc}`;
+      }).join('\n');
+    }
+
+    function joinSkills(list) {
+      if (!Array.isArray(list) || !list.length) return '-';
+      // Dataset memiliki beberapa angka hitungan di awal array; jangan ikut diekspor sebagai keahlian.
+      return list.filter(v => !/^\d+$/.test(String(v).trim())).join(', ') || '-';
+    }
+
+    function joinCertificates(list) {
+      if (!Array.isArray(list) || !list.length) return '-';
+      return list.map((c, i) => {
+        const name = c.nama || '-';
+        const source = c.penerbit_dan_waktu ? ` — ${c.penerbit_dan_waktu}` : '';
+        return `${i + 1}. ${name}${source}`;
+      }).join('\n');
+    }
+
+    function getCvUrl(item) {
+      if (!item) return '';
+      if (item.cv) return String(item.cv).trim();
+
+      // Fallback: cari URL CV yang mungkin tersimpan di deskripsi/profil.
+      const json = item.json_data || {};
+      const profil = json.profil_pelamar || {};
+      const haystack = [
+        profil.deskripsi_diri || '',
+        json.deskripsi_diri || '',
+        json.cv || '',
+        json.link_cv || '',
+        json.url_cv || ''
+      ].join(' ');
+      const urls = haystack.match(/https?:\/\/[^\s"'<>]+/g) || [];
+      return urls.find(u => /(^|\/)(cv|curriculum|resume)(\/|\?|$)/i.test(u)) || '';
+    }
+
+    function makeExportRow(item) {
+      const json = item.json_data || {};
+      const profil = json.profil_pelamar || {};
+      const pddikti = json.pddikti || {};
+
+      return {
+        'Nama': item.name || '',
+        'Email': item.email || '',
+        'Posisi Dilamar': item.posisi || '',
+        'Pendidikan': item.pendidikan || '',
+        'Tanggal Lahir': profil.tanggal_lahir || '',
+        'Usia': profil.usia || '',
+        'Domisili': profil.domisili || '',
+        'Jenis Kelamin': profil.jenis_kelamin || '',
+        'Perguruan Tinggi (PDDIKTI)': pddikti.perguruan_tinggi || '',
+        'Jenjang / IPK': `${pddikti.jenjang || '-'} / ${pddikti.ipk || '-'}`,
+        'Program Studi': pddikti.program_studi || '',
+        'Pengalaman Kerja': joinExperiences(json.pengalaman_kerja),
+        'Keahlian': joinSkills(json.keahlian),
+        'Sertifikasi & Prestasi': joinCertificates(json.sertifikasi_pelatihan_prestasi),
+        'Link CV': getCvUrl(item) || '-'
+      };
+    }
+
+    function safeSheetName(name) {
+      return String(name || 'Sheet')
+        .replace(/[\\\/\?\*\[\]\:]/g, '-')
+        .slice(0, 31) || 'Sheet';
+    }
+
+    async function exportSelectedToExcel() {
+      const candidates = selectedCandidates();
+      if (!candidates.length) { alert('Belum ada kandidat yang dipilih.'); return; }
+      if (typeof ExcelJS === 'undefined') { alert('Library Excel belum termuat. Pastikan internet aktif lalu coba lagi.'); return; }
+
+      const btn = document.getElementById('export-selected-btn');
+      const oldHTML = btn ? btn.innerHTML : '';
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Menyiapkan Excel + Foto...'; }
+
+      async function imageUrlToDataUrl(url) {
+        if (!url) return null;
+        try {
+          const response = await fetch(url, { mode: 'cors', credentials: 'omit', cache: 'force-cache' });
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          const blob = await response.blob();
+          if (!blob.type.startsWith('image/')) throw new Error('Bukan gambar');
+          return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch (e) { console.warn('Foto gagal diambil:', url, e); return null; }
+      }
+
+      function addSheet(workbook, sheetName, items, photoMap) {
+        const ws = workbook.addWorksheet(safeSheetName(sheetName), { views: [{ state: 'frozen', ySplit: 1 }] });
+        const columns = [
+          ['Foto Profil',15], ['Nama',28], ['Email',36], ['Posisi Dilamar',40], ['Pendidikan',52],
+          ['Tanggal Lahir',18], ['Usia',12], ['Domisili',42], ['Jenis Kelamin',18],
+          ['Perguruan Tinggi (PDDIKTI)',38], ['Jenjang / IPK',18], ['Program Studi',32],
+          ['Pengalaman Kerja',65], ['Keahlian',55], ['Sertifikasi & Prestasi',65], ['Link CV',75]
+        ];
+        ws.columns = columns.map(([header,width]) => ({ header, key: header, width }));
+        ws.getRow(1).height = 26;
+        ws.getRow(1).eachCell(c => {
+          c.font = { bold:true, color:{argb:'FFFFFFFF'} };
+          c.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+          c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF0F172A'} };
+        });
+        items.forEach(item => {
+          const d = makeExportRow(item);
+          const row = ws.addRow({ 'Foto Profil':'', ...d });
+          row.height = 82;
+          row._ewsCandidate = item;
+          row.eachCell((cell,col) => {
+            cell.alignment = { vertical:'top', wrapText:true };
+            if (col === 16 && typeof cell.value === 'string' && /^https?:\/\//i.test(cell.value)) {
+              const url=cell.value.trim(); cell.value={text:'Lihat CV',hyperlink:url,tooltip:'Buka CV kandidat'};
+              cell.font={color:{argb:'FF2563EB'},underline:true};
+            }
+          });
+        });
+        for (let r=2;r<=ws.rowCount;r++) {
+          const item=ws.getRow(r)._ewsCandidate, id=photoMap.get(item), cell=ws.getCell(r,1);
+          if (id !== undefined) {
+            ws.addImage(id,{tl:{col:0.18,row:r-1+0.06},ext:{width:78,height:78}});
+          } else if (item.avatar) {
+            cell.value={text:'Lihat Foto',hyperlink:item.avatar,tooltip:'Buka foto profil kandidat'};
+            cell.font={color:{argb:'FF2563EB'},underline:true};
+            cell.alignment={vertical:'middle',horizontal:'center'};
+          } else { cell.value='-'; cell.alignment={vertical:'middle',horizontal:'center'}; }
+        }
+        return ws;
+      }
+
+      try {
+        const wb = new ExcelJS.Workbook();
+        wb.creator='EWS Pelamar'; wb.created=new Date(); wb.modified=new Date();
+        const photoMap=new Map();
+        for (const item of candidates) {
+          if (!item.avatar) continue;
+          const dataUrl=await imageUrlToDataUrl(item.avatar);
+          if (!dataUrl) continue;
+          try {
+            const ext=/^data:image\/png/i.test(dataUrl)?'png':'jpeg';
+            photoMap.set(item, wb.addImage({base64:dataUrl,extension:ext}));
+          } catch(e) { console.warn('Gagal menanam foto:',item.name,e); }
+        }
+        addSheet(wb,'Semua Terpilih',candidates,photoMap);
+        const groups={};
+        candidates.forEach(item => { const pos=item.posisi||'Tanpa Posisi'; (groups[pos] ||= []).push(item); });
+        Object.entries(groups).forEach(([pos,items])=>addSheet(wb,pos,items,photoMap));
+
+        const date=new Date();
+        const stamp=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('');
+        const filename=`Kandidat_Terpilih_${stamp}.xlsx`;
+        const buffer=await wb.xlsx.writeBuffer();
+        if (!buffer || !buffer.byteLength) throw new Error('Workbook Excel kosong.');
+        const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if(isMobile && navigator.share && navigator.canShare){
+          const file=new File([blob],filename,{type:blob.type,lastModified:Date.now()});
+          let can=false; try{can=navigator.canShare({files:[file]})}catch(e){}
+          if(can){try{await navigator.share({files:[file],title:filename,text:`${candidates.length} kandidat terpilih + foto profil`});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+        }
+        const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();
+        setTimeout(()=>{try{a.remove()}catch(e){} try{URL.revokeObjectURL(url)}catch(e){}},10000);
+        alert(`Excel berhasil dibuat untuk ${candidates.length} kandidat. Foto profil dimasukkan ke kolom Foto Profil.`);
+      } catch(error) {
+        console.error(error); alert(`Gagal mengekspor Excel: ${error?.message || error}`);
+      } finally {
+        if(btn){btn.disabled=false;btn.innerHTML=oldHTML;} updateSelectionUI();
+      }
+    }
+    function renderTable(data) {
+      currentDataSet = data;
+      const tbody = document.getElementById("applicant-table-body");
+      tbody.innerHTML = "";
+      const selectedKeys = getSelectedKeys();
+
+      data.forEach((item, index) => {
+        const row = document.createElement("tr");
+        const key = getCandidateKey(item);
+        const selected = selectedKeys.has(key);
+
+        row.dataset.candidateKey = key;
+        row.className = selected
+          ? "bg-amber-400/15 hover:bg-amber-400/20 transition-colors ring-1 ring-inset ring-amber-400/50"
+          : "hover:bg-gray-800/40 transition-colors";
+
+        row.innerHTML = `
+          <td class="px-4 py-3.5 text-center font-medium text-gray-500">${item.no}</td>
+          <td class="px-4 py-3.5">
+            <div class="flex items-center gap-3">
+              <div class="flex flex-col items-center gap-1 flex-shrink-0">
+                <img src="${item.avatar}" alt="${item.name}" class="w-11 h-11 rounded-full object-cover border border-gray-700 bg-gray-800" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=1e293b&color=fff'">
+                <button type="button" onclick="openPhoto(${index})" class="text-[10px] font-semibold text-cyan-300 hover:text-white border border-cyan-700/60 bg-cyan-950/30 hover:bg-cyan-700/60 rounded px-2 py-0.5 transition-all" title="Lihat foto profil besar">
+                  View
+                </button>
+              </div>
+              <div>
+                <div class="font-semibold text-white tracking-wide flex items-center gap-2">
+                  ${item.name}
+                  ${selected ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">TERPILIH</span>' : ''}
+                </div>
+                <div class="text-xs text-gray-400 font-mono">${item.email}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3.5 font-medium text-gray-200">${item.posisi}</td>
+          <td class="px-4 py-3.5 text-xs text-gray-400 max-w-xs leading-relaxed">${item.pendidikan}</td>
+          <td class="px-4 py-3.5 text-center">
+            <span class="inline-flex items-center rounded-full ${selected ? 'bg-amber-400 text-slate-950 border-amber-300' : 'bg-blue-950/80 text-blue-400 border-blue-800/60'} px-2.5 py-1 text-xs font-medium border">
+              ${selected ? 'Terpilih' : item.status}
+            </span>
+          </td>
+          <td class="px-4 py-3.5 text-center text-xs text-gray-300">${item.tanggal}</td>
+          <td class="px-4 py-3.5 text-center">
+            <button onclick="openModal(${index})" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium ${selected ? 'text-amber-300 bg-amber-950/40 border-amber-500/60' : 'text-blue-400 bg-blue-950/30 border-blue-800/60'} border rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Detail
+            </button>
+            ${selected ? '' : `<button onclick="deleteApplicant(currentDataSet[${index}])" type="button" class="ml-1.5 inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-300 bg-red-950/30 border border-red-800/60 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Hapus peserta yang tidak terpilih">🗑 Hapus</button>`}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("total-count").innerText = `${data.length} Orang`;
+      updateSelectionUI();
+    }
+
+    // Tab Switching dengan Update Kotak Syarat Dinamis
+    function switchTab(tab) {
+      const btnSurvei = document.getElementById("tab-survei");
+      const btnYuridis = document.getElementById("tab-yuridis");
+      const viewTitle = document.getElementById("view-title");
+      const viewSubtitle = document.getElementById("view-subtitle");
+      const reqBox = document.getElementById("requirements-box");
+
+      if (tab === 'survei') {
+        btnSurvei.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-500/20";
+        btnYuridis.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-gray-800/50";
+        viewTitle.innerText = "Peserta Wawancara Magang Kantah Bintan Total 22 Peserta";
+        viewSubtitle.innerText = "Posisi: Tenaga Teknis Survei & Pemetaan";
+        reqBox.innerHTML = `
+          <div class="flex flex-col md:flex-row md:items-center justify-center gap-4 w-full">
+            <div class="flex items-center justify-center gap-2">
+              <span class="text-xs font-semibold uppercase px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg tracking-wider shadow-sm">Jenjang Pendidikan:</span>
+              <div class="flex gap-1.5">
+                <span class="px-2.5 py-0.5 bg-blue-900/40 border border-blue-700/50 text-blue-300 rounded text-xs font-medium">Diploma</span>
+                <span class="px-2.5 py-0.5 bg-blue-900/40 border border-blue-700/50 text-blue-300 rounded text-xs font-medium">Sarjana</span>
+              </div>
+            </div>
+            <div class="hidden md:block text-gray-700">|</div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <span class="text-xs font-semibold uppercase px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg tracking-wider shadow-sm">Program Studi (6):</span>
+              <div class="flex flex-wrap justify-center gap-1.5">
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Perencanaan Tata Ruang Wilayah dan Kota</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Teknik Informatika</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Geografi</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Pertanahan</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Teknik Geodesi</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Teknik Geomatika</span>
+              </div>
+            </div>
+          </div>
+        `;
+        renderTable(dataSurvei);
+      } else {
+        btnYuridis.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-blue-600 text-white shadow-lg shadow-blue-500/20";
+        btnSurvei.className = "px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white hover:bg-gray-800/50";
+        viewTitle.innerText = "Peserta Wawancara Magang Kantah Bintan Total 22 Peserta";
+        viewSubtitle.innerText = "Posisi: Tenaga Administrasi & Yuridis Pertanahan";
+        reqBox.innerHTML = `
+          <div class="flex flex-col md:flex-row md:items-center justify-center gap-4 w-full">
+            <div class="flex items-center justify-center gap-2">
+              <span class="text-xs font-semibold uppercase px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg tracking-wider shadow-sm">Jenjang Pendidikan:</span>
+              <div class="flex gap-1.5">
+                <span class="px-2.5 py-0.5 bg-blue-900/40 border border-blue-700/50 text-blue-300 rounded text-xs font-medium">Diploma</span>
+                <span class="px-2.5 py-0.5 bg-blue-900/40 border border-blue-700/50 text-blue-300 rounded text-xs font-medium">Sarjana</span>
+              </div>
+            </div>
+            <div class="hidden md:block text-gray-700">|</div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+              <span class="text-xs font-semibold uppercase px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg tracking-wider shadow-sm">Program Studi (4):</span>
+              <div class="flex flex-wrap justify-center gap-1.5">
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Pertanahan</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Ilmu Hukum</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Hukum</span>
+                <span class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-gray-300 rounded text-xs font-medium">Administrasi Negara</span>
+              </div>
+            </div>
+          </div>
+        `;
+        renderTable(dataYuridis);
+      }
+    }
+
+    // Foto profil: tampilkan foto kandidat yang sama dengan baris yang dipilih.
+    function openPhoto(index) {
+      const item = currentDataSet[index];
+      if (!item) return;
+
+      const modal = document.getElementById('photo-modal');
+      const img = document.getElementById('photo-viewer-image');
+      const nameEl = document.getElementById('photo-viewer-name');
+      if (!modal || !img) return;
+
+      img.onerror = function() {
+        this.onerror = null;
+        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=1e293b&color=fff&size=800`;
+      };
+      img.src = item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'User')}&background=1e293b&color=fff&size=800`;
+      img.alt = `Foto profil ${item.name || 'Kandidat'}`;
+      if (nameEl) nameEl.innerText = item.name || 'Kandidat';
+      modal.classList.remove('hidden');
+    }
+
+    function closePhoto() {
+      const modal = document.getElementById('photo-modal');
+      const img = document.getElementById('photo-viewer-image');
+      if (modal) modal.classList.add('hidden');
+      if (img) img.src = '';
+    }
+
+    function openCurrentCv() {
+      const item = currentModalItem;
+      const url = getCvUrl(item);
+      if (!url) {
+        alert(`CV untuk ${item?.name || 'kandidat ini'} belum tersedia.`);
+        return;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    // Modal Functions
+    function openModal(index) {
+      const item = currentDataSet[index];
+      if (!item) return;
+
+      currentModalItem = item;
+      const json = item.json_data || {};
+      const profil = json.profil_pelamar || {};
+      const pddikti = json.pddikti || {};
+
+      const avatarEl = document.getElementById("modal-avatar");
+      avatarEl.src = item.avatar;
+      avatarEl.onerror = function() {
+        this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=475569&color=fff`;
+      };
+
+      document.getElementById("modal-name").innerText = item.name;
+      document.getElementById("modal-email").innerText = item.email;
+      document.getElementById("modal-phone-domisili").innerText = `${profil.telepon || '-'} • ${profil.domisili || '-'}`;
+      document.getElementById("modal-status-badge").innerText = isSelected(item) ? 'Terpilih' : item.status;
+      document.getElementById("modal-posisi").innerText = item.posisi;
+      document.getElementById("modal-tanggal").innerText = `Melamar: ${item.tanggal}`;
+
+      const cvBtn = document.getElementById("modal-cv-btn");
+      const cvUrl = getCvUrl(item);
+      if (cvBtn) {
+        cvBtn.disabled = !cvUrl;
+        cvBtn.classList.toggle('opacity-50', !cvUrl);
+        cvBtn.classList.toggle('cursor-not-allowed', !cvUrl);
+        cvBtn.title = cvUrl ? `Lihat CV ${item.name}` : 'CV tidak tersedia';
+      }
+
+      document.getElementById("modal-profil-info").innerHTML = `
+        <div><span class="font-medium text-slate-400">Tanggal Lahir:</span> <p class="text-white font-semibold">${profil.tanggal_lahir || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">Usia:</span> <p class="text-white font-semibold">${profil.usia || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">Jenis Kelamin:</span> <p class="text-white font-semibold">${profil.jenis_kelamin || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">Domisili:</span> <p class="text-white font-semibold">${profil.domisili || '-'}</p></div>
+      `;
+
+      document.getElementById("modal-deskripsi").innerText = profil.deskripsi_diri || "Tidak ada deskripsi diri.";
+
+      document.getElementById("modal-pddikti-detail").innerHTML = `
+        <div><span class="font-medium text-slate-400">Nama Terdaftar:</span> <p class="text-white font-semibold">${pddikti.nama_terdaftar || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">NIM:</span> <p class="text-white font-semibold">${pddikti.nim || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">Perguruan Tinggi:</span> <p class="text-white font-semibold">${pddikti.perguruan_tinggi || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">Program Studi:</span> <p class="text-white font-semibold">${pddikti.program_studi || '-'}</p></div>
+        <div><span class="font-medium text-slate-400">Jenjang / IPK:</span> <p class="text-white font-semibold">${pddikti.jenjang || '-'} (IPK: ${pddikti.ipk || '-'})</p></div>
+        <div><span class="font-medium text-slate-400">Tanggal Lulus:</span> <p class="text-white font-semibold">${pddikti.tanggal_lulus || '-'}</p></div>
+      `;
+
+      const pendidikanEl = document.getElementById("modal-pendidikan");
+      const eduList = json.pendidikan || [];
+      if (eduList.length === 0) {
+        pendidikanEl.innerHTML = `<p class="text-slate-400 italic">Tidak ada catatan riwayat pendidikan.</p>`;
+      } else {
+        pendidikanEl.innerHTML = eduList.map(edu => `
+          <div class="border-l-2 border-emerald-500 pl-3 py-0.5 space-y-0.5">
+            <div class="font-semibold text-white">${edu.institusi || '-'}</div>
+            <div class="text-slate-300">${edu.jurusan_jenjang || ''}</div>
+            <div class="text-slate-400 text-[11px]">${edu.periode_dan_nilai || ''}</div>
+          </div>
+        `).join('');
+      }
+
+      const bahasaEl = document.getElementById("modal-bahasa");
+      const bahasaList = json.bahasa || [];
+      if (bahasaList.length === 0) {
+        bahasaEl.innerHTML = `<span class="text-slate-400 italic text-xs">Tidak ada data bahasa tercatat.</span>`;
+      } else {
+        bahasaEl.innerHTML = bahasaList.map(b => `<span class="px-2.5 py-1 bg-emerald-950/60 text-emerald-300 rounded-lg text-xs font-semibold border border-emerald-800">${b.bahasa || '-'} <span class="text-emerald-400 font-normal">(${b.tingkat || '-'})</span></span>`).join('');
+      }
+
+      const pengALamanEl = document.getElementById("modal-pengalaman");
+      const expList = json.pengalaman_kerja || [];
+      if (expList.length === 0) {
+        pengALamanEl.innerHTML = `<p class="text-slate-400 italic">Tidak ada catatan pengalaman kerja.</p>`;
+      } else {
+        pengALamanEl.innerHTML = expList.map(exp => `
+          <div class="border-l-2 border-blue-500 pl-3 py-0.5 space-y-0.5">
+            <div class="font-semibold text-white">${exp.posisi || '-'} — <span class="text-blue-400">${exp.instansi || '-'}</span></div>
+            <div class="text-slate-400 text-[11px]">${exp.periode || ''}</div>
+            <p class="text-slate-300">${exp.deskripsi || ''}</p>
+          </div>
+        `).join('');
+      }
+
+      const keahlianEl = document.getElementById("modal-keahlian");
+      const skills = json.keahlian || [];
+      if (skills.length === 0) {
+        keahlianEl.innerHTML = `<span class="text-slate-400 italic text-xs">Tidak ada keahlian tercatat.</span>`;
+      } else {
+        keahlianEl.innerHTML = skills
+          .filter(skill => !/^\d+$/.test(String(skill).trim()))
+          .map(skill => `<span class="px-2.5 py-1 bg-blue-950/60 text-blue-300 rounded-lg text-xs font-semibold border border-blue-800">${skill}</span>`).join('');
+      }
+
+      const sertifEl = document.getElementById("modal-sertifikasi");
+      const certs = json.sertifikasi_pelatihan_prestasi || [];
+      if (certs.length === 0) {
+        sertifEl.innerHTML = `<p class="text-slate-400 italic text-xs">Tidak ada sertifikasi tercatat.</p>`;
+      } else {
+        sertifEl.innerHTML = certs.map(c => `<div class="p-2 bg-slate-900 rounded-lg border border-slate-700"><div class="font-semibold text-white">${c.nama || '-'}</div><div class="text-slate-400 text-[11px]">${c.penerbit_dan_waktu || ''}</div></div>`).join('');
+      }
+
+      updateModalSelectionButton();
+      document.getElementById("detail-modal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("detail-modal").classList.add("hidden");
+      currentModalItem = null;
+    }
+
+    // Tutup modal dengan Escape / klik backdrop.
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      const photoModal = document.getElementById('photo-modal');
+      if (photoModal && !photoModal.classList.contains('hidden')) {
+        closePhoto();
+        return;
+      }
+      closeModal();
     });
+
+    document.getElementById('photo-modal')?.addEventListener('click', e => {
+      if (e.target.id === 'photo-modal') closePhoto();
+    });
+
+    document.getElementById('detail-modal').addEventListener('click', e => {
+      if (e.target.id === 'detail-modal') closeModal();
+    });
+
+    async function logoutUser() { await supabaseClient.auth.signOut(); location.reload(); }
+
+    async function initDashboard() {
+      if (SUPABASE_URL.includes('PASTE_') || SUPABASE_PUBLISHABLE_KEY.includes('PASTE_')) {
+        document.getElementById('login-screen').classList.remove('hidden');
+        setSyncStatus('Belum dikonfigurasi', false);
+        document.getElementById('login-error').textContent = 'Isi SUPABASE_URL dan SUPABASE_PUBLISHABLE_KEY di bagian konfigurasi HTML terlebih dahulu.';
+        document.getElementById('login-error').classList.remove('hidden');
+        return;
+      }
+      if (!supabaseClient) { document.getElementById('login-screen').classList.remove('hidden'); setSyncStatus('Belum dikonfigurasi', false); return; }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) { document.getElementById('login-screen').classList.remove('hidden'); setSyncStatus('Silakan login', false); return; }
+      document.getElementById('login-screen').classList.add('hidden');
+      await loadApplicants(true);
+      startRealtime();
+    }
+
+    document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('login-button');
+      const err = document.getElementById('login-error');
+      btn.disabled = true; btn.textContent = 'Memeriksa...'; err.classList.add('hidden');
+      if (!supabaseClient) { err.textContent = 'Konfigurasi Supabase belum diisi.'; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Masuk ke Dashboard'; return; }
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('login-email').value.trim(),
+        password: document.getElementById('login-password').value
+      });
+      if (error) { err.textContent = error.message; err.classList.remove('hidden'); }
+      else { document.getElementById('login-screen').classList.add('hidden'); await loadApplicants(true); startRealtime(); }
+      btn.disabled = false; btn.textContent = 'Masuk ke Dashboard';
+    });
+
+    // Initialize default tab on load
+    window.onload = function() {
+      switchTab('survei');
+      updateSelectionUI();
+      initDashboard();
+    };
+
   </script>
 </body>
 </html>
