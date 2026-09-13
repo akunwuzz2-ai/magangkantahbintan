@@ -4,38 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peserta Wawancara Magang Kantah Bintan</title>
-  <!-- Supabase JS Client -->
+  <!-- Supabase JS Client v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- SheetJS untuk Ekspor Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
-  <!-- Tambahkan elemen UI pendukung di sini sesuai struktur halaman Anda -->
-
   <script>
-    // 1. Inisialisasi Supabase Client (Ganti dengan URL & Key milik Anda)
+    // 1. Inisialisasi Supabase Client dengan API Key Baru
     const SUPABASE_URL = 'https://klpmlblcmmrnqkhukqzd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_oWOp8TPwWScDLyTozwjRTg_QsNT-St0';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Penanganan khusus untuk Supabase Client versi v2 dengan Publishable Key
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    });
 
     let dataSurvei = [];
     let dataYuridis = [];
-    let currentDataSet = 'survei'; // Default tab
+    let currentDataSet = 'survei';
     let isLoadingApplicants = false;
 
-    // Helper untuk menampilkan status sinkronisasi
     function setSyncStatus(msg, isSuccess) {
       console.log(`[Status]: ${msg}`);
     }
 
-    // Helper Kunci Unik Kandidat (Penanganan nama/email)
-    function getCandidateKey(item) {
-      const candidateName = item.nama || item.name || '';
-      return `${String(item.email || candidateName).trim().toLowerCase()}__${String(item.posisi || '').trim().toLowerCase()}`;
-    }
-
-    // 2. Fungsi Utama Load Applicants (Mencegah Duplikasi Data & Fix Nama -)
+    // 2. Fungsi Load Applicants (Mencegah Duplikasi & Perbaikan Nama -)
     async function loadApplicants(showStatus = true) {
       if (isLoadingApplicants) return;
       isLoadingApplicants = true;
@@ -68,7 +67,7 @@
         updateTabCounts();
         if (showStatus) setSyncStatus('Realtime aktif', true);
       } catch (error) {
-        console.error(error);
+        console.error('Error Supabase:', error);
         setSyncStatus('Gagal memuat database', false);
         alert('Gagal mengambil data dari Supabase:\n' + error.message);
       } finally {
@@ -111,7 +110,7 @@
       });
     }
 
-    // 4. Update Angka Tab & Counter
+    // 4. Update Angka Tab
     function updateTabCounts() {
       const elSurvei = document.getElementById('count-survei');
       const elYuridis = document.getElementById('count-yuridis');
@@ -120,37 +119,6 @@
       if (elSurvei) elSurvei.innerText = dataSurvei.length;
       if (elYuridis) elYuridis.innerText = dataYuridis.length;
       if (elTotal) elTotal.innerText = dataSurvei.length + dataYuridis.length;
-    }
-
-    // 5. Ekspor Data Ke Excel
-    function makeExportRow(item) {
-      const json = item.json_data || {};
-      const profil = json.profil_pelamar || {};
-      const pddikti = json.pddikti || {};
-
-      return {
-        'Nama': item.nama || item.name || '-',
-        'Email': item.email || '-',
-        'Posisi Dilamar': item.posisi || '-',
-        'Pendidikan': item.pendidikan || '-',
-        'Tanggal Lahir': profil.tanggal_lahir || '-',
-        'Usia': profil.usia || '-',
-        'Domisili': profil.domisili || '-',
-        'Jenis Kelamin': profil.jenis_kelamin || '-',
-        'Perguruan Tinggi': pddikti.perguruan_tinggi || '-',
-        'Program Studi': pddikti.program_studi || '-'
-      };
-    }
-
-    // Modal & Preview Foto (Mendukung nama kandidat)
-    function openModal(index) {
-      const list = currentDataSet === 'survei' ? dataSurvei : dataYuridis;
-      const item = list[index];
-      if (!item) return;
-
-      const candidateName = item.nama || item.name || '-';
-      const nameEl = document.getElementById("modal-name");
-      if (nameEl) nameEl.innerText = candidateName;
     }
 
     // Inisialisasi Pertama
