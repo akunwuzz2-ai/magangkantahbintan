@@ -4,296 +4,125 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peserta Wawancara Magang Kantah Bintan</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SheetJS untuk Ekspor Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    body { background-color: #0f172a; color: #f8fafc; }
-    .bg-card { background-color: #1e293b; }
-    .border-custom { border-color: #334155; }
-  </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 font-sans">
+<body>
 
-  <!-- Container Utama -->
-  <div class="max-w-7xl mx-auto space-y-6">
-    
-    <!-- Header App -->
-    <div class="flex justify-between items-center text-xs text-slate-400">
-      <button class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700">Keluar</button>
-      <div>App by : Nurdin Ganteng</div>
-    </div>
+  <!-- Tambahkan elemen UI pendukung di sini sesuai struktur halaman Anda -->
 
-    <!-- Judul Header -->
-    <div class="text-center space-y-2">
-      <h1 class="text-2xl md:text-3xl font-bold tracking-tight">
-        Peserta Wawancara Magang Kantah Bintan Total <span id="total-all-count">0</span> Peserta
-      </h1>
-      <p id="posisi-label" class="text-slate-400 text-sm">Posisi: Tenaga Teknis Survei & Pemetaan</p>
-    </div>
-
-    <!-- Tab Kategori & Filter -->
-    <div class="flex flex-col items-center gap-4">
-      <!-- Tab Posisi -->
-      <div class="flex gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
-        <button id="btn-tab-survei" onclick="switchCategory('survei')" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white">
-          Tenaga Teknis Survei & Pemetaan (<span id="count-survei">0</span>)
-        </button>
-        <button id="btn-tab-yuridis" onclick="switchCategory('yuridis')" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white">
-          Tenaga Administrasi & Yuridis Pertanahan (<span id="count-yuridis">0</span>)
-        </button>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-wrap items-center justify-center gap-3">
-        <div class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm">
-          Total Pelamar Tampil: <span id="total-tampil-count" class="font-bold">0</span> Orang
-        </div>
-        <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium flex items-center gap-2">
-          📊 Eksport Excel <span id="export-count" class="bg-emerald-900 px-2 py-0.5 rounded text-xs">0</span>
-        </button>
-        <button onclick="resetFilters()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm border border-slate-700">
-          Reset Pilihan
-        </button>
-        <button onclick="hapusTidakTerpilih()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium">
-          🗑️ Hapus Tidak Terpilih
-        </button>
-      </div>
-    </div>
-
-    <!-- Status Sync -->
-    <div class="flex justify-end items-center gap-2 text-xs">
-      <span id="sync-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
-      <span id="sync-status" class="text-slate-400">Menghubungkan ke Supabase...</span>
-    </div>
-
-    <!-- Tabel Data Pelamar -->
-    <div class="overflow-x-auto bg-card rounded-xl border border-custom">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-slate-900/60 text-slate-400 border-b border-custom uppercase text-xs">
-          <tr>
-            <th class="p-4 w-12 text-center">NO</th>
-            <th class="p-4">KANDIDAT</th>
-            <th class="p-4">POSISI DILAMAR</th>
-            <th class="p-4">PENDIDIKAN</th>
-            <th class="p-4">STATUS</th>
-            <th class="p-4">TANGGAL MELAMAR</th>
-            <th class="p-4 text-center">AKSI</th>
-          </tr>
-        </thead>
-        <tbody id="applicant-tbody" class="divide-y divide-slate-800">
-          <tr>
-            <td colspan="7" class="p-8 text-center text-slate-500">Memuat data peserta...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-  </div>
-
-  <!-- Modal Detail -->
-  <div id="modal-detail" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50">
-    <div class="bg-card max-w-2xl w-full rounded-xl border border-custom p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-start">
-        <h2 id="modal-name" class="text-xl font-bold">Detail Pelamar</h2>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
-      </div>
-      <div id="modal-body" class="space-y-3 text-sm text-slate-300">
-        <!-- Detail diinjeksi via JS -->
-      </div>
-      <div class="flex justify-end">
-        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded text-sm">Tutup</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JavaScript Logic -->
   <script>
-    // Config Supabase
+    // 1. Inisialisasi Supabase Client (Ganti dengan URL & Key milik Anda)
     const SUPABASE_URL = 'https://klpmlblcmmrnqkhukqzd.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Ganti dengan anon key Anda
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Dynamic State Array
     let dataSurvei = [];
     let dataYuridis = [];
-    let currentCategory = 'survei';
+    let currentDataSet = 'survei'; // Default tab
     let isLoadingApplicants = false;
 
-    // Helper: Ambil data kategori aktif
-    function getCurrentData() {
-      return currentCategory === 'survei' ? dataSurvei : dataYuridis;
+    // Helper untuk menampilkan status sinkronisasi
+    function setSyncStatus(msg, isSuccess) {
+      console.log(`[Status]: ${msg}`);
     }
 
-    // Helper: Ambil Kunci Unik Kandidat (Aman dari null nama/email/posisi)
+    // Helper Kunci Unik Kandidat (Penanganan nama/email)
     function getCandidateKey(item) {
       const candidateName = item.nama || item.name || '';
       return `${String(item.email || candidateName).trim().toLowerCase()}__${String(item.posisi || '').trim().toLowerCase()}`;
     }
 
-    // Load Data dari Supabase
+    // 2. Fungsi Utama Load Applicants (Mencegah Duplikasi Data & Fix Nama -)
     async function loadApplicants(showStatus = true) {
       if (isLoadingApplicants) return;
       isLoadingApplicants = true;
-
       try {
         const { data, error } = await supabaseClient
           .from('peserta_wawancara')
           .select('*')
           .eq('deleted', false)
-          .order('created_at', { ascending: true });
+          .order('kategori')
+          .order('no');
 
         if (error) throw error;
 
-        // KOSONGKAN ARRAY AGAR TIDAK DUPLIKAT / MEMBENGKAK
+        // KOSONGKAN ARRAY TERLEBIH DAHULU UNTUK MENCEGAH DUPLIKASI/MEMBENGKAK
         dataSurvei.length = 0;
         dataYuridis.length = 0;
 
         (data || []).forEach(item => {
-          // Normalisasi nama (Supabase: 'nama' atau 'name')
+          // Normalisasi properti nama (mendukung 'nama' atau 'name')
           item.name = item.nama || item.name || '-';
 
-          // Pengelompokan Kategori
-          const kat = (item.kategori || '').toLowerCase();
-          if (kat === 'survei' || (item.posisi && item.posisi.toLowerCase().includes('survei'))) {
+          if (item.kategori === 'survei') {
             dataSurvei.push(item);
-          } else {
+          } else if (item.kategori === 'yuridis') {
             dataYuridis.push(item);
           }
         });
 
-        renderTable();
+        renderTable(currentDataSet);
         updateTabCounts();
         if (showStatus) setSyncStatus('Realtime aktif', true);
       } catch (error) {
-        console.error('Error loadApplicants:', error);
+        console.error(error);
         setSyncStatus('Gagal memuat database', false);
+        alert('Gagal mengambil data dari Supabase:\n' + error.message);
       } finally {
         isLoadingApplicants = false;
       }
     }
 
-    // Render Tabel
-    function renderTable() {
-      const tbody = document.getElementById('applicant-tbody');
-      const dataset = getCurrentData();
+    // 3. Render Tabel Peserta
+    function renderTable(type) {
+      currentDataSet = type;
+      const list = type === 'survei' ? dataSurvei : dataYuridis;
+      const tbody = document.getElementById('table-body');
+      if (!tbody) return;
 
-      if (!dataset || dataset.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">Tidak ada data peserta.</td></tr>`;
+      tbody.innerHTML = '';
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Tidak ada data pelamar.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = dataset.map((item, index) => {
-        const candidateName = item.nama || item.name || '-';
-        const candidateEmail = item.email || '-';
-        const candidatePosisi = item.posisi || '-';
-        const candidatePendidikan = item.pendidikan || '-';
-        const candidateStatus = item.status || 'Pelamar';
-        const candidateTanggal = item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
-
-        return `
-          <tr class="hover:bg-slate-800/50 border-b border-slate-800">
-            <td class="p-4 text-center font-medium">${index + 1}</td>
-            <td class="p-4">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs text-blue-400">
-                  ${candidateName.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div class="font-semibold text-slate-100">${candidateName}</div>
-                  <div class="text-xs text-slate-400">${candidateEmail}</div>
-                </div>
-              </div>
-            </td>
-            <td class="p-4 font-medium text-slate-200">${candidatePosisi}</td>
-            <td class="p-4 text-slate-300 text-xs">${candidatePendidikan}</td>
-            <td class="p-4">
-              <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-900/40 text-blue-400 border border-blue-800">
-                ${candidateStatus}
-              </span>
-            </td>
-            <td class="p-4 text-slate-400 text-xs">${candidateTanggal}</td>
-            <td class="p-4">
-              <div class="flex items-center justify-center gap-2">
-                <button onclick="openModal(${index})" class="px-3 py-1.5 bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 rounded border border-blue-800 text-xs">
-                  👁 Detail
-                </button>
-                <button onclick="hapusPelamar('${item.id}')" class="px-3 py-1.5 bg-red-900/30 hover:bg-red-800/50 text-red-400 rounded border border-red-800 text-xs">
-                  🗑 Hapus
-                </button>
-              </div>
-            </td>
-          </tr>
+      list.forEach((item, index) => {
+        const displayName = item.nama || item.name || '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>
+            <strong>${displayName}</strong><br>
+            <small>${item.email || '-'}</small>
+          </td>
+          <td>${item.posisi || '-'}</td>
+          <td>${item.pendidikan || '-'}</td>
+          <td><span class="badge">${item.status || 'Pelamar'}</span></td>
+          <td>
+            <button onclick="openModal(${index})">Detail</button>
+            <button onclick="deleteApplicant('${item.id}')">Hapus</button>
+          </td>
         `;
-      }).join('');
+        tbody.appendChild(tr);
+      });
     }
 
-    // Switch Tab Kategori
-    function switchCategory(cat) {
-      currentCategory = cat;
-      const btnSurvei = document.getElementById('btn-tab-survei');
-      const btnYuridis = document.getElementById('btn-tab-yuridis');
-      const labelPosisi = document.getElementById('posisi-label');
-
-      if (cat === 'survei') {
-        btnSurvei.className = 'px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white';
-        btnYuridis.className = 'px-5 py-2.5 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-        labelPosisi.innerText = 'Posisi: Tenaga Teknis Survei & Pemetaan';
-      } else {
-        btnYuridis.className = 'px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white';
-        btnSurvei.className = 'px-5 py-2.5 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-        labelPosisi.innerText = 'Posisi: Tenaga Administrasi & Yuridis Pertanahan';
-      }
-
-      renderTable();
-      updateTabCounts();
-    }
-
-    // Update Counter UI
+    // 4. Update Angka Tab & Counter
     function updateTabCounts() {
-      document.getElementById('count-survei').innerText = dataSurvei.length;
-      document.getElementById('count-yuridis').innerText = dataYuridis.length;
-      document.getElementById('total-all-count').innerText = dataSurvei.length + dataYuridis.length;
-      
-      const currentData = getCurrentData();
-      document.getElementById('total-tampil-count').innerText = currentData.length;
-      document.getElementById('export-count').innerText = currentData.length;
+      const elSurvei = document.getElementById('count-survei');
+      const elYuridis = document.getElementById('count-yuridis');
+      const elTotal = document.getElementById('count-total');
+
+      if (elSurvei) elSurvei.innerText = dataSurvei.length;
+      if (elYuridis) elYuridis.innerText = dataYuridis.length;
+      if (elTotal) elTotal.innerText = dataSurvei.length + dataYuridis.length;
     }
 
-    // Buka Modal Detail
-    function openModal(index) {
-      const item = getCurrentData()[index];
-      if (!item) return;
-
-      const candidateName = item.nama || item.name || '-';
-      document.getElementById("modal-name").innerText = candidateName;
-
-      const json = item.json_data || {};
-      const profil = json.profil_pelamar || {};
-      const pddikti = json.pddikti || {};
-
-      document.getElementById("modal-body").innerHTML = `
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div><strong class="text-slate-400">Email:</strong> ${item.email || '-'}</div>
-          <div><strong class="text-slate-400">Posisi:</strong> ${item.posisi || '-'}</div>
-          <div><strong class="text-slate-400">Pendidikan:</strong> ${item.pendidikan || '-'}</div>
-          <div><strong class="text-slate-400">Tanggal Lahir:</strong> ${profil.tanggal_lahir || '-'}</div>
-          <div><strong class="text-slate-400">Jenis Kelamin:</strong> ${profil.jenis_kelamin || '-'}</div>
-          <div><strong class="text-slate-400">Domisili:</strong> ${profil.domisili || '-'}</div>
-          <div><strong class="text-slate-400">Kampus (PDDIKTI):</strong> ${pddikti.perguruan_tinggi || '-'}</div>
-          <div><strong class="text-slate-400">Program Studi:</strong> ${pddikti.program_studi || '-'}</div>
-        </div>
-      `;
-      document.getElementById("modal-detail").classList.remove("hidden");
-      document.getElementById("modal-detail").classList.add("flex");
-    }
-
-    function closeModal() {
-      document.getElementById("modal-detail").classList.add("hidden");
-      document.getElementById("modal-detail").classList.remove("flex");
-    }
-
-    // Export Data Ke Excel
+    // 5. Ekspor Data Ke Excel
     function makeExportRow(item) {
       const json = item.json_data || {};
       const profil = json.profil_pelamar || {};
@@ -309,58 +138,24 @@
         'Domisili': profil.domisili || '-',
         'Jenis Kelamin': profil.jenis_kelamin || '-',
         'Perguruan Tinggi': pddikti.perguruan_tinggi || '-',
-        'Program Studi': pddikti.program_studi || '-',
-        'IPK': pddikti.ipk || '-'
+        'Program Studi': pddikti.program_studi || '-'
       };
     }
 
-    function exportToExcel() {
-      const currentData = getCurrentData();
-      if (currentData.length === 0) {
-        alert("Tidak ada data untuk diekspor!");
-        return;
-      }
-      const exportData = currentData.map(makeExportRow);
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Peserta");
-      XLSX.writeFile(workbook, `Peserta_Wawancara_${currentCategory}.xlsx`);
+    // Modal & Preview Foto (Mendukung nama kandidat)
+    function openModal(index) {
+      const list = currentDataSet === 'survei' ? dataSurvei : dataYuridis;
+      const item = list[index];
+      if (!item) return;
+
+      const candidateName = item.nama || item.name || '-';
+      const nameEl = document.getElementById("modal-name");
+      if (nameEl) nameEl.innerText = candidateName;
     }
 
-    // Hapus Single Pelamar
-    async function hapusPelamar(id) {
-      if (!confirm("Apakah Anda yakin ingin menghapus peserta ini?")) return;
-      try {
-        const { error } = await supabaseClient
-          .from('peserta_wawancara')
-          .update({ deleted: true })
-          .eq('id', id);
-
-        if (error) throw error;
-        await loadApplicants(false);
-      } catch (err) {
-        alert("Gagal menghapus: " + err.message);
-      }
-    }
-
-    // Status Indicator
-    function setSyncStatus(msg, isSuccess) {
-      document.getElementById('sync-status').innerText = msg;
-      const dot = document.getElementById('sync-dot');
-      dot.className = `w-2 h-2 rounded-full ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'}`;
-    }
-
-    // Inisialisasi Realtime Subscription & Load Awal
-    window.addEventListener('DOMContentLoaded', () => {
+    // Inisialisasi Pertama
+    document.addEventListener('DOMContentLoaded', () => {
       loadApplicants();
-
-      // Realtime listener Supabase
-      supabaseClient
-        .channel('public:peserta_wawancara')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'peserta_wawancara' }, () => {
-          loadApplicants(false);
-        })
-        .subscribe();
     });
   </script>
 </body>
