@@ -4,19 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peserta Wawancara Magang Kantah Bintan</title>
+  
   <!-- Supabase JS Client v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- SheetJS untuk Ekspor Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #fff; }
+    
+    .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #1e293b; padding: 15px; border-radius: 8px; flex: 1; text-align: center; }
+    .stat-card span { font-size: 24px; font-weight: bold; color: #38bdf8; display: block; }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+    .tab-btn { background: #1e293b; color: #94a3b8; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+    .tab-btn.active { background: #2563eb; color: #fff; }
+
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #334155; }
+    th { background: #0f172a; color: #94a3b8; }
+    
+    .badge { background: #10b981; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .btn-action { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    .status-text { margin-bottom: 10px; font-size: 14px; color: #38bdf8; }
+  </style>
 </head>
 <body>
 
+  <div class="container">
+    <header>
+      <h1>Peserta Wawancara Magang Kantah Bintan</h1>
+    </header>
+
+    <div class="stats-bar">
+      <div class="stat-card">Total Pelamar<span id="count-total">0</span></div>
+      <div class="stat-card">Kategori Survei<span id="count-survei">0</span></div>
+      <div class="stat-card">Kategori Yuridis<span id="count-yuridis">0</span></div>
+    </div>
+
+    <div id="status-sync" class="status-text">Memuat data...</div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="btn-survei" onclick="switchTab('survei')">Tenaga Teknis Survei</button>
+      <button class="tab-btn" id="btn-yuridis" onclick="switchTab('yuridis')">Tenaga Administrasi & Yuridis</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>NO</th>
+          <th>KANDIDAT</th>
+          <th>POSISI DILAMAR</th>
+          <th>PENDIDIKAN</th>
+          <th>STATUS</th>
+          <th>AKSI</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="6" style="text-align:center;">Sedang mengambil data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <script>
-    // 1. Inisialisasi Supabase Client dengan API Key Baru
     const SUPABASE_URL = 'https://klpmlblcmmrnqkhukqzd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_oWOp8TPwWScDLyTozwjRTg_QsNT-St0';
-    
-    // Penanganan khusus untuk Supabase Client versi v2 dengan Publishable Key
+
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: {
         persistSession: false,
@@ -30,14 +89,16 @@
     let currentDataSet = 'survei';
     let isLoadingApplicants = false;
 
-    function setSyncStatus(msg, isSuccess) {
-      console.log(`[Status]: ${msg}`);
+    function setSyncStatus(msg) {
+      const el = document.getElementById('status-sync');
+      if (el) el.innerText = msg;
     }
 
-    // 2. Fungsi Load Applicants (Mencegah Duplikasi & Perbaikan Nama -)
-    async function loadApplicants(showStatus = true) {
+    async function loadApplicants() {
       if (isLoadingApplicants) return;
       isLoadingApplicants = true;
+      setSyncStatus('Memuat data dari Supabase...');
+
       try {
         const { data, error } = await supabaseClient
           .from('peserta_wawancara')
@@ -48,12 +109,12 @@
 
         if (error) throw error;
 
-        // KOSONGKAN ARRAY TERLEBIH DAHULU UNTUK MENCEGAH DUPLIKASI/MEMBENGKAK
+        // Kosongkan array untuk mencegah duplikasi/membengkak
         dataSurvei.length = 0;
         dataYuridis.length = 0;
 
         (data || []).forEach(item => {
-          // Normalisasi properti nama (mendukung 'nama' atau 'name')
+          // Normalisasi field nama agar tidak muncul "-"
           item.name = item.nama || item.name || '-';
 
           if (item.kategori === 'survei') {
@@ -65,17 +126,15 @@
 
         renderTable(currentDataSet);
         updateTabCounts();
-        if (showStatus) setSyncStatus('Realtime aktif', true);
+        setSyncStatus('Data berhasil diperbarui (Realtime Aktif)');
       } catch (error) {
         console.error('Error Supabase:', error);
-        setSyncStatus('Gagal memuat database', false);
-        alert('Gagal mengambil data dari Supabase:\n' + error.message);
+        setSyncStatus('Gagal memuat data: ' + error.message);
       } finally {
         isLoadingApplicants = false;
       }
     }
 
-    // 3. Render Tabel Peserta
     function renderTable(type) {
       currentDataSet = type;
       const list = type === 'survei' ? dataSurvei : dataYuridis;
@@ -96,32 +155,46 @@
           <td>${index + 1}</td>
           <td>
             <strong>${displayName}</strong><br>
-            <small>${item.email || '-'}</small>
+            <small style="color: #94a3b8;">${item.email || '-'}</small>
           </td>
           <td>${item.posisi || '-'}</td>
           <td>${item.pendidikan || '-'}</td>
           <td><span class="badge">${item.status || 'Pelamar'}</span></td>
           <td>
-            <button onclick="openModal(${index})">Detail</button>
-            <button onclick="deleteApplicant('${item.id}')">Hapus</button>
+            <button class="btn-action" onclick="deleteApplicant('${item.id}')">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // 4. Update Angka Tab
-    function updateTabCounts() {
-      const elSurvei = document.getElementById('count-survei');
-      const elYuridis = document.getElementById('count-yuridis');
-      const elTotal = document.getElementById('count-total');
-
-      if (elSurvei) elSurvei.innerText = dataSurvei.length;
-      if (elYuridis) elYuridis.innerText = dataYuridis.length;
-      if (elTotal) elTotal.innerText = dataSurvei.length + dataYuridis.length;
+    function switchTab(type) {
+      document.getElementById('btn-survei').classList.toggle('active', type === 'survei');
+      document.getElementById('btn-yuridis').classList.toggle('active', type === 'yuridis');
+      renderTable(type);
     }
 
-    // Inisialisasi Pertama
+    function updateTabCounts() {
+      document.getElementById('count-survei').innerText = dataSurvei.length;
+      document.getElementById('count-yuridis').innerText = dataYuridis.length;
+      document.getElementById('count-total').innerText = dataSurvei.length + dataYuridis.length;
+    }
+
+    async function deleteApplicant(id) {
+      if (!confirm('Yakin ingin menghapus peserta ini?')) return;
+      try {
+        const { error } = await supabaseClient
+          .from('peserta_wawancara')
+          .update({ deleted: true })
+          .eq('id', id);
+
+        if (error) throw error;
+        loadApplicants();
+      } catch (err) {
+        alert('Gagal menghapus: ' + err.message);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       loadApplicants();
     });
